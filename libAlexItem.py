@@ -62,8 +62,7 @@ class LibAlexItem:
                     # Verify the base level of the json
                     if isinstance(metaJson, dict):
                         # Assign values
-                        self._assignMetadata(metaJson)
-                        self.isLoaded = True
+                        self.isLoaded = self._assignMetadata(metaJson)
                     else:
                         # Failed
                         print(f"\"{self.metaFilepath}\" is not a valid Metadata file.")
@@ -88,19 +87,38 @@ class LibAlexItem:
         Be sure to run `validate()` after assigning these values.
 
         data: Metadata JSON dictionary.
+
+        Returns True if the assigned metadata is valid.
         """
+        # Prepare flag
+        isValid = True
+
         # Assign easy values
         self.classification = data.get("classification", laShared.DEFAULT_CLASSIFICATION)
         self.title = data.get("title", laShared.DEFAULT_TITLE)
         self.author = data.get("author", laShared.DEFAULT_AUTHOR)
         self.date = data.get("date", laShared.DEFAULT_DATE)
-        self.sourceFile = data.get("sourceFile", laShared.DEFAULT_SOURCEFILE)
         self.flags = data.get("flags", laShared.DEFAULT_FLAGS)
         self.description = data.get("description", laShared.DEFAULT_DESCRIPTION)
 
+        # Assign source file
+        sourceFileRaw = data.get("sourceFile", laShared.DEFAULT_SOURCEFILE)
+        if (sourceFileRaw != laShared.DEFAULT_SOURCEFILE) and isinstance(sourceFileRaw, str):
+            sourceFileRaw = os.path.join(self.directory, sourceFileRaw)
+            if os.path.isfile(sourceFileRaw):
+                self.sourceFile = sourceFileRaw
+            else:
+                if self.isVerbose:
+                    print(f"Provided source file path is invalid: {sourceFileRaw}")
+                isValid = False
+        else:
+            if self.isVerbose:
+                print(f"Provided source file path is invalid: {sourceFileRaw}")
+            isValid = False
+
         # Assign other files
         otherFilesRaw = data.get("otherFiles", laShared.DEFAULT_OTHERFILES)
-        if (otherFilesRaw != laShared.DEFAULT_OTHERFILES) and (otherFilesRaw != None) and isinstance(otherFilesRaw, list):
+        if (otherFilesRaw != laShared.DEFAULT_OTHERFILES) and isinstance(otherFilesRaw, list):
             # Populate the other files list
             self.otherFiles = []
             for ofData in otherFilesRaw:
@@ -118,31 +136,42 @@ class LibAlexItem:
                 )
                 self.otherFiles.append(otherFile)
 
+        return isValid
+
     # Functions
-    # TODO: Add function to get all flags from `flags`, `resolvedFlags`, and `classification`
     def getAllFlags(self) -> list:
         """
         Returns all flags including metadata specified, resolved from filepath, and metadata classification.
         """
-        # Determine if the flag lists are valid
-        flagsIsList = isinstance(self.flags, list)
-        resolvedFlagsIsList = isinstance(self.resolvedFlags, list)
+        # Check if loaded
+        if self.isLoaded:
+            # Determine if the flag lists are valid
+            flagsIsList = isinstance(self.flags, list)
+            resolvedFlagsIsList = isinstance(self.resolvedFlags, list)
 
-        if flagsIsList and resolvedFlagsIsList:
-            # Both flags
-            allFlags = self.flags + self.resolvedFlags
-            allFlags.append(self.classification)
-            return allFlags
-        elif flagsIsList:
-            # Only metadata flags
-            allFlags = self.flags.copy()
-            allFlags.append(self.classification)
-            return allFlags
-        else:
-            # Only resolved flags
-            allFlags = self.resolvedFlags.copy()
-            allFlags.append(self.classification)
-            return allFlags
+            if flagsIsList and resolvedFlagsIsList:
+                # Both flags
+                allFlags = self.flags + self.resolvedFlags
+                allFlags.append(self.classification)
+                return allFlags
+            elif flagsIsList:
+                # Only metadata flags
+                allFlags = self.flags.copy()
+                allFlags.append(self.classification)
+                return allFlags
+            else:
+                # Only resolved flags
+                allFlags = self.resolvedFlags.copy()
+                allFlags.append(self.classification)
+                return allFlags
+
+    def getText(self) -> str:
+        """
+        # TODO: Add function to load full text
+        """
+        # Check if loaded
+        if self.isLoaded:
+            pass
 
 # Console Execution
 if __name__ == "__main__":
