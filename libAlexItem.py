@@ -167,11 +167,13 @@ class LibAlexItem:
 
     def getText(self) -> str:
         """
-        # TODO: Add function to load full text
+        Returns the full source file Markdown text.
         """
         # Check if loaded
         if self.isLoaded:
-            pass
+            # Open and read
+            with open(self.sourceFile, 'r') as source:
+                return source.read()
 
 # Console Execution
 if __name__ == "__main__":
