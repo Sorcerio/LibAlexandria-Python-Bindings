@@ -132,6 +132,7 @@ class LibAlexItem:
                     ofData.get("label", laShared.DEFAULT_OTHERFILE_LABEL),
                     otherFilePath,
                     ofData.get("description", laShared.DEFAULT_OTHERFILE_DESCRIPTION),
+                    ofData.get("id", laShared.DEFAULT_OTHERFILE_ID),
                     verbose=self.isVerbose
                 )
                 self.otherFiles.append(otherFile)
