@@ -63,7 +63,7 @@ class LibAlexItem:
                     if isinstance(metaJson, dict):
                         # Assign values
                         self._assignMetadata(metaJson)
-                        self.validate()
+                        self.isLoaded = True
                     else:
                         # Failed
                         print(f"\"{self.metaFilepath}\" is not a valid Metadata file.")
@@ -73,6 +73,13 @@ class LibAlexItem:
         else:
             # Failed
             print(f"Provided directory does not exist: {self.directory}")
+
+    ## Core Functions
+    def __str__(self) -> str:
+        if self.isLoaded:
+            return f"{self.title} by {self.author} ({self.date})"
+        else:
+            return "Invalid LibAlexandria Item"
 
     # Private Functions
     def _assignMetadata(self, data: dict) -> bool:
@@ -113,12 +120,6 @@ class LibAlexItem:
 
     # Functions
     # TODO: Add function to get all flags from `flags`, `resolvedFlags`, and `classification`
-    def validate(self) -> bool:
-        """
-        Validates this LibAlexandria Item.
-        If validation is successful, marks this object as loaded.
-        """
-        # TODO: Value validation function
 
 # Console Execution
 if __name__ == "__main__":
