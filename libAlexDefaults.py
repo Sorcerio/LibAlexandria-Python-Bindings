@@ -13,6 +13,10 @@ DEFAULT_ITEM_DIRECTORY = None
 DEFAULT_ITEM_METAFILEPATH = None
 DEFAULT_ITEM_RESOLVEDFLAGS = None
 
+DEFAULT_OTHERFILE_LABEL = "Untitled"
+DEFUALT_OTHERFILE_PATH = None
+DEFAULT_OTHERFILE_DESCRIPTION = ""
+
 DEFAULT_CLASSIFICATION = None
 DEFAULT_TITLE = "Untitled"
 DEFAULT_AUTHOR = "Anonymous"
@@ -67,3 +71,7 @@ def slugify(s):
     s = re.sub(r"[^\w\s-]", "", s.lower())
     s = re.sub(r"[-\s]+", "-", s).strip("-_")
     return s
+
+# Console Execution
+if __name__ == "__main__":
+    print("This file cannot be run from the command line.")

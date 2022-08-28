@@ -6,13 +6,14 @@ import os
 import json
 
 import libAlexDefaults as laShared
+from libAlexOtherFile import LibAlexOtherFile
 
 # Defaults
 
 # Classes
-class LibAlexItem():
+class LibAlexItem:
     """
-    A LibAlexandria item representing the information for the provided directory's meta file and content.
+    A LibAlexandria Item representing the information for the provided directory's meta file and content.
     """
     # Constructor
     def __init__(self, verbose = False):
@@ -36,6 +37,7 @@ class LibAlexItem():
         self.flags = laShared.DEFAULT_FLAGS
         self.description = laShared.DEFAULT_DESCRIPTION
 
+    # Loader Functions
     def loadMeta(self, dirpath: str, metaFilename = "meta.json"):
         """
         Loads this LibAlexandria Item from the given directory.
@@ -60,13 +62,11 @@ class LibAlexItem():
                     # Verify the base level of the json
                     if isinstance(metaJson, dict):
                         # Assign values
-                        # self.classification = metaJson.get()
-                        pass
+                        self._assignMetadata(metaJson)
+                        self.validate()
                     else:
                         # Failed
                         print(f"\"{self.metaFilepath}\" is not a valid Metadata file.")
-
-                # TODO: Validation check assigned values
             else:
                 # Failed
                 print(f"\"{self.metaFilepath}\" could not be found within the provided directory: {self.directory}")
@@ -75,8 +75,51 @@ class LibAlexItem():
             print(f"Provided directory does not exist: {self.directory}")
 
     # Private Functions
-    # TODO: Value assignment function
-    # TODO: Value validation function (together with above?)
+    def _assignMetadata(self, data: dict) -> bool:
+        """
+        Parses the provided Metadata JSON dictionary and assigns its values to this object.
+        Be sure to run `validate()` after assigning these values.
+
+        data: Metadata JSON dictionary.
+        """
+        # Assign easy values
+        self.classification = data.get("classification", laShared.DEFAULT_CLASSIFICATION)
+        self.title = data.get("title", laShared.DEFAULT_TITLE)
+        self.author = data.get("author", laShared.DEFAULT_AUTHOR)
+        self.date = data.get("date", laShared.DEFAULT_DATE)
+        self.sourceFile = data.get("sourceFile", laShared.DEFAULT_SOURCEFILE)
+        self.flags = data.get("flags", laShared.DEFAULT_FLAGS)
+        self.description = data.get("description", laShared.DEFAULT_DESCRIPTION)
+
+        # Assign other files
+        otherFilesRaw = data.get("otherFiles", laShared.DEFAULT_OTHERFILES)
+        if (otherFilesRaw != laShared.DEFAULT_OTHERFILES) and (otherFilesRaw != None) and isinstance(otherFilesRaw, list):
+            # Populate the other files list
+            self.otherFiles = []
+            for ofData in otherFilesRaw:
+                # Resolve the full filepath
+                otherFilePath = ofData.get("path", laShared.DEFUALT_OTHERFILE_PATH)
+                if otherFilePath != laShared.DEFUALT_OTHERFILE_PATH:
+                    otherFilePath = os.path.join(self.directory, otherFilePath)
+
+                # Record the other file
+                otherFile = LibAlexOtherFile(
+                    ofData.get("label", laShared.DEFAULT_OTHERFILE_LABEL),
+                    otherFilePath,
+                    ofData.get("description", laShared.DEFAULT_OTHERFILE_DESCRIPTION),
+                    verbose=self.isVerbose
+                )
+                self.otherFiles.append(otherFile)
 
     # Functions
     # TODO: Add function to get all flags from `flags`, `resolvedFlags`, and `classification`
+    def validate(self) -> bool:
+        """
+        Validates this LibAlexandria Item.
+        If validation is successful, marks this object as loaded.
+        """
+        # TODO: Value validation function
+
+# Console Execution
+if __name__ == "__main__":
+    print("This file cannot be run from the command line.")
