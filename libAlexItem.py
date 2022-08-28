@@ -120,6 +120,29 @@ class LibAlexItem:
 
     # Functions
     # TODO: Add function to get all flags from `flags`, `resolvedFlags`, and `classification`
+    def getAllFlags(self) -> list:
+        """
+        Returns all flags including metadata specified, resolved from filepath, and metadata classification.
+        """
+        # Determine if the flag lists are valid
+        flagsIsList = isinstance(self.flags, list)
+        resolvedFlagsIsList = isinstance(self.resolvedFlags, list)
+
+        if flagsIsList and resolvedFlagsIsList:
+            # Both flags
+            allFlags = self.flags + self.resolvedFlags
+            allFlags.append(self.classification)
+            return allFlags
+        elif flagsIsList:
+            # Only metadata flags
+            allFlags = self.flags.copy()
+            allFlags.append(self.classification)
+            return allFlags
+        else:
+            # Only resolved flags
+            allFlags = self.resolvedFlags.copy()
+            allFlags.append(self.classification)
+            return allFlags
 
 # Console Execution
 if __name__ == "__main__":
