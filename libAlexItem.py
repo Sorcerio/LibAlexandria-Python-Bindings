@@ -37,6 +37,13 @@ class LibAlexItem:
         self.flags = laShared.DEFAULT_FLAGS
         self.description = laShared.DEFAULT_DESCRIPTION
 
+    # Python Functions
+    def __str__(self) -> str:
+        if self.isLoaded:
+            return f"{self.title} by {self.author} ({self.date})"
+        else:
+            return "Invalid LibAlexandria Item"
+
     # Loader Functions
     def loadMeta(self, dirpath: str, metaFilename = "meta.json"):
         """
@@ -72,13 +79,6 @@ class LibAlexItem:
         else:
             # Failed
             print(f"Provided directory does not exist: {self.directory}")
-
-    ## Core Functions
-    def __str__(self) -> str:
-        if self.isLoaded:
-            return f"{self.title} by {self.author} ({self.date})"
-        else:
-            return "Invalid LibAlexandria Item"
 
     # Private Functions
     def _assignMetadata(self, data: dict) -> bool:
