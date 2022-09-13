@@ -7,6 +7,7 @@ import json
 
 import libAlexDefaults as laShared
 from libAlexOtherFile import LibAlexOtherFile
+from libAlexVersionData import VersionData
 
 # Defaults
 
@@ -28,6 +29,7 @@ class LibAlexItem:
         self.isVerbose = verbose
 
         # Prepare default values
+        self.version = None # `None` or a `VersionData` object
         self.classification = laShared.DEFAULT_CLASSIFICATION
         self.title = laShared.DEFAULT_TITLE
         self.author = laShared.DEFAULT_AUTHOR
@@ -84,7 +86,37 @@ class LibAlexItem:
     def _assignMetadata(self, data: dict) -> bool:
         """
         Parses the provided Metadata JSON dictionary and assigns its values to this object.
-        Be sure to run `validate()` after assigning these values.
+
+        data: Metadata JSON dictionary.
+
+        Returns True if the assigned metadata is valid.
+        """
+        # Get the version code
+        dataVersion = data.get("_infover", None)
+
+        # Check for validity
+        if dataVersion != None:
+            # Convert to a data version object
+            dataVersion = VersionData(dataVersion)
+
+            # Check the version
+            if dataVersion.major == 2:
+                return self._parseVersionTwoData(data)
+            elif dataVersion.major == 1:
+                return self._parseVersionOneData(data)
+            else:
+                # Failed
+                print(f"\"{dataVersion.string}\" is not a supported version of Meta file.")
+        else:
+            # Failed
+            print(f"\"{self.metaFilepath}\" does not provide a Meta file version using the `_infover` key.")
+
+        # Overall Failure
+        return False
+
+    def _parseVersionTwoData(self, data: dict) -> bool:
+        """
+        Parses the provided Metadata JSON dictionary as a `v2.*` LibAlex dataset and assigns its values to this object.
 
         data: Metadata JSON dictionary.
 
@@ -136,6 +168,27 @@ class LibAlexItem:
                     verbose=self.isVerbose
                 )
                 self.otherFiles.append(otherFile)
+
+        return isValid
+
+    def _parseVersionOneData(self, data: dict) -> bool:
+        """
+        Parses the provided Metadata JSON dictionary as a `v1.*` LibAlex dataset and assigns its values to this object the best it can.
+
+        *Some data will be filled with default values!*
+        This is due to the fact that `v1.*` contains less information than `v2.*` data.
+
+        data: Metadata JSON dictionary.
+
+        Returns True if the assigned metadata is valid.
+        """
+        # Tell the user they're bad
+        print("DEPRECATED: Version `1.*` Meta files should be converted to Version `2.*` for increased compatibility and functionality!")
+
+        # Prepare flag
+        isValid = True
+
+        # TODO: Parse
 
         return isValid
 

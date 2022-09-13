@@ -1,5 +1,6 @@
 # LibAlexandria
 __all__ = [
     "libAlexItem",
-    "LibAlexOtherFile"
+    "libAlexOtherFile",
+    "libAlexVersionData"
 ]
