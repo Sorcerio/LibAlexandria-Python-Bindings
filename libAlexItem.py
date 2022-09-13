@@ -29,7 +29,7 @@ class LibAlexItem:
         self.isVerbose = verbose
 
         # Prepare default values
-        self.version = None # `None` or a `VersionData` object
+        self.infoVer = None # `None` or a `VersionData` object
         self.classification = laShared.DEFAULT_CLASSIFICATION
         self.title = laShared.DEFAULT_TITLE
         self.author = laShared.DEFAULT_AUTHOR
@@ -101,9 +101,9 @@ class LibAlexItem:
 
             # Check the version
             if dataVersion.major == 2:
-                return self._parseVersionTwoData(data)
+                return self._parseVersionTwoData(data, dataVersion)
             elif dataVersion.major == 1:
-                return self._parseVersionOneData(data)
+                return self._parseVersionOneData(data, dataVersion)
             else:
                 # Failed
                 print(f"\"{dataVersion.string}\" is not a supported version of Meta file.")
@@ -114,11 +114,12 @@ class LibAlexItem:
         # Overall Failure
         return False
 
-    def _parseVersionTwoData(self, data: dict) -> bool:
+    def _parseVersionTwoData(self, data: dict, version: VersionData) -> bool:
         """
         Parses the provided Metadata JSON dictionary as a `v2.*` LibAlex dataset and assigns its values to this object.
 
         data: Metadata JSON dictionary.
+        version: A VersionData object.
 
         Returns True if the assigned metadata is valid.
         """
@@ -126,6 +127,7 @@ class LibAlexItem:
         isValid = True
 
         # Assign easy values
+        self.infoVer = version
         self.classification = data.get("classification", laShared.DEFAULT_CLASSIFICATION)
         self.title = data.get("title", laShared.DEFAULT_TITLE)
         self.author = data.get("author", laShared.DEFAULT_AUTHOR)
@@ -171,7 +173,7 @@ class LibAlexItem:
 
         return isValid
 
-    def _parseVersionOneData(self, data: dict) -> bool:
+    def _parseVersionOneData(self, data: dict, version: VersionData) -> bool:
         """
         Parses the provided Metadata JSON dictionary as a `v1.*` LibAlex dataset and assigns its values to this object the best it can.
 
@@ -179,18 +181,25 @@ class LibAlexItem:
         This is due to the fact that `v1.*` contains less information than `v2.*` data.
 
         data: Metadata JSON dictionary.
+        version: A VersionData object.
 
         Returns True if the assigned metadata is valid.
         """
         # Tell the user they're bad
         print("DEPRECATED: Version `1.*` Meta files should be converted to Version `2.*` for increased compatibility and functionality!")
 
-        # Prepare flag
-        isValid = True
+        # Convert the data to 2.*
+        translated = {
+            "title": data.get("title", laShared.DEFAULT_TITLE),
+            "author": data.get("author", laShared.DEFAULT_AUTHOR),
+            "date": data.get("date", laShared.DEFAULT_DATE),
+            "sourceFile": data.get("content", laShared.DEFAULT_SOURCEFILE),
+            "flags": data.get("flags", laShared.DEFAULT_FLAGS),
+            "description": data.get("description", laShared.DEFAULT_DESCRIPTION)
+        }
 
-        # TODO: Parse
-
-        return isValid
+        # Run through v2.* parser
+        return self._parseVersionTwoData(translated, version)
 
     # Functions
     def getAllFlags(self) -> list:

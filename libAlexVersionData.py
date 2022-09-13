@@ -35,30 +35,6 @@ class VersionData:
 
     # TODO: eq, ne, lt, le, gt, and ge functions
 
-    # def __eq__(self, __o: object) -> bool:
-    #     # Equal
-    #     return isinstance(VersionData) and (self.string == __o.string)
-
-    # def __ne__(self, __o: object) -> bool:
-    #     # Not Equal
-    #     return not (self == __o)
-
-    # def __lt__(self, __o: object) -> bool:
-    #     # Less Than
-    #     pass
-
-    # def __le__(self, other):
-    #     # Less Than or Equal To
-    #     pass
-
-    # def __gt__(self, other):
-    #     # Greater Than
-    #     pass
-
-    # def __ge__(self, other):
-    #     # Greater Than or Equat To
-    #     pass
-
     # Private Functions
     def _parse(self):
         """
