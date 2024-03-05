@@ -9,23 +9,23 @@ from unicodedata import normalize
 # Variables
 VER_LIBALEX = "2.0.0"
 
-DEFAULT_ITEM_DIRECTORY = None
-DEFAULT_ITEM_METAFILEPATH = None
-DEFAULT_ITEM_RESOLVEDFLAGS = None
+DEF_ITEM_DIR = None
+DEF_ITEM_META_PATH = None
+DEF_ITEM_RES_FLAGS = None
 
-DEFAULT_OTHERFILE_LABEL = "Untitled"
-DEFUALT_OTHERFILE_PATH = None
-DEFAULT_OTHERFILE_DESCRIPTION = ""
-DEFAULT_OTHERFILE_ID = None
+DEF_REL_FILE_LABEL = "Untitled"
+DEF_REL_FILE_PATH = None
+DEF_REL_FILE_DESC = ""
+DEF_REL_FILE_ID = None
 
-DEFAULT_CLASSIFICATION = None
-DEFAULT_TITLE = "Untitled"
-DEFAULT_AUTHOR = "Anonymous"
-DEFAULT_DATE = "Undated" # NOTE: This is normally a year in 'YYYY-MM-DD' format.
-DEFAULT_SOURCEFILE = None
-DEFAULT_OTHERFILES = None
-DEFAULT_FLAGS = None
-DEFAULT_DESCRIPTION = "An empty LibAlexandria Item."
+DEF_CLASSIFICATION = None
+DEF_TITLE = "Untitled"
+DEF_AUTHOR = "Anonymous"
+DEF_DATE = "Undated"
+DEF_SRC_FILE = None
+DEF_REL_FILES = None
+DEF_FLAGS = None
+DEF_DESC = "An empty LibAlexandria Item."
 
 # Functions
 def fullpath(path: str) -> str:

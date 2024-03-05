@@ -21,17 +21,17 @@ class LibAlexItem:
     # Constructors
     def __init__(self,
         version: Optional[SemanticVersion] = None,
-        title: str = laShared.DEFAULT_TITLE,
-        author: str = laShared.DEFAULT_AUTHOR,
-        date: str = laShared.DEFAULT_DATE,
-        description: str = laShared.DEFAULT_DESCRIPTION,
-        directory: Optional[str] = laShared.DEFAULT_ITEM_DIRECTORY,
-        sourceFile: Optional[str] = laShared.DEFAULT_SOURCEFILE,
-        relatedFiles: Optional[list[LibAlexRelatedFile]] = laShared.DEFAULT_OTHERFILES,
-        metaFilepath: Optional[str] = laShared.DEFAULT_ITEM_METAFILEPATH,
-        classification: Optional[str] = laShared.DEFAULT_CLASSIFICATION,
-        flags: Optional[list[str]] = laShared.DEFAULT_FLAGS,
-        resolvedFlags: Optional[list[str]] = laShared.DEFAULT_ITEM_RESOLVEDFLAGS
+        title: str = laShared.DEF_TITLE,
+        author: str = laShared.DEF_AUTHOR,
+        date: str = laShared.DEF_DATE,
+        description: str = laShared.DEF_DESC,
+        directory: Optional[str] = laShared.DEF_ITEM_DIR,
+        sourceFile: Optional[str] = laShared.DEF_SRC_FILE,
+        relatedFiles: Optional[list[LibAlexRelatedFile]] = laShared.DEF_REL_FILES,
+        metaFilepath: Optional[str] = laShared.DEF_ITEM_META_PATH,
+        classification: Optional[str] = laShared.DEF_CLASSIFICATION,
+        flags: Optional[list[str]] = laShared.DEF_FLAGS,
+        resolvedFlags: Optional[list[str]] = laShared.DEF_ITEM_RES_FLAGS
     ):
         """
         Creates a new LibAlexandria Item.
@@ -111,9 +111,9 @@ class LibAlexItem:
     @classmethod
     def fromJson(cls,
         jsonData: dict[str, Any],
-        directory: Optional[str] = laShared.DEFAULT_ITEM_DIRECTORY,
-        metaFilepath: Optional[str] = laShared.DEFAULT_ITEM_METAFILEPATH,
-        resolvedFlags: Optional[list[str]] = laShared.DEFAULT_ITEM_RESOLVEDFLAGS
+        directory: Optional[str] = laShared.DEF_ITEM_DIR,
+        metaFilepath: Optional[str] = laShared.DEF_ITEM_META_PATH,
+        resolvedFlags: Optional[list[str]] = laShared.DEF_ITEM_RES_FLAGS
     ) -> 'LibAlexItem':
         """
         Loads a LibAlexandria Item from the provided JSON data.
@@ -169,9 +169,9 @@ class LibAlexItem:
     @classmethod
     def _fromV1Json(cls,
         jsonData: dict[str, Any],
-        directory: Optional[str] = laShared.DEFAULT_ITEM_DIRECTORY,
-        metaFilepath: Optional[str] = laShared.DEFAULT_ITEM_METAFILEPATH,
-        resolvedFlags: Optional[list[str]] = laShared.DEFAULT_ITEM_RESOLVEDFLAGS
+        directory: Optional[str] = laShared.DEF_ITEM_DIR,
+        metaFilepath: Optional[str] = laShared.DEF_ITEM_META_PATH,
+        resolvedFlags: Optional[list[str]] = laShared.DEF_ITEM_RES_FLAGS
     ) -> 'LibAlexItem':
         """
         Loads a LibAlexandria Item from the provided `v1.*` JSON data.
@@ -191,12 +191,12 @@ class LibAlexItem:
         # Mock v2 style data
         return cls._fromV2Json(
             {
-                "title": jsonData.get("title", laShared.DEFAULT_TITLE),
-                "author": jsonData.get("author", laShared.DEFAULT_AUTHOR),
-                "date": jsonData.get("date", laShared.DEFAULT_DATE),
-                "sourceFile": jsonData.get("content", laShared.DEFAULT_SOURCEFILE),
-                "flags": jsonData.get("flags", laShared.DEFAULT_FLAGS),
-                "description": jsonData.get("description", laShared.DEFAULT_DESCRIPTION)
+                "title": jsonData.get("title", laShared.DEF_TITLE),
+                "author": jsonData.get("author", laShared.DEF_AUTHOR),
+                "date": jsonData.get("date", laShared.DEF_DATE),
+                "sourceFile": jsonData.get("content", laShared.DEF_SRC_FILE),
+                "flags": jsonData.get("flags", laShared.DEF_FLAGS),
+                "description": jsonData.get("description", laShared.DEF_DESC)
             },
             directory=directory,
             metaFilepath=metaFilepath,
@@ -206,9 +206,9 @@ class LibAlexItem:
     @classmethod
     def _fromV2Json(cls,
         jsonData: dict[str, Any],
-        directory: Optional[str] = laShared.DEFAULT_ITEM_DIRECTORY,
-        metaFilepath: Optional[str] = laShared.DEFAULT_ITEM_METAFILEPATH,
-        resolvedFlags: Optional[list[str]] = laShared.DEFAULT_ITEM_RESOLVEDFLAGS
+        directory: Optional[str] = laShared.DEF_ITEM_DIR,
+        metaFilepath: Optional[str] = laShared.DEF_ITEM_META_PATH,
+        resolvedFlags: Optional[list[str]] = laShared.DEF_ITEM_RES_FLAGS
     ) -> 'LibAlexItem':
         """
         Loads a LibAlexandria Item from the provided `v2.*` JSON data.
@@ -222,8 +222,8 @@ class LibAlexItem:
         Returns a new LibAlexandria Item.
         """
         # Resolve the source file
-        sourceFile = jsonData.get("sourceFile", laShared.DEFAULT_SOURCEFILE)
-        if (sourceFile != laShared.DEFAULT_SOURCEFILE) and isinstance(sourceFile, str):
+        sourceFile = jsonData.get("sourceFile", laShared.DEF_SRC_FILE)
+        if (sourceFile != laShared.DEF_SRC_FILE) and isinstance(sourceFile, str):
             # Build the full path
             sourceFile = os.path.join(directory, sourceFile)
 
@@ -233,24 +233,24 @@ class LibAlexItem:
                 raise FileNotFoundError(f"Provided source filepath could not be resolved: {sourceFile}")
 
         # Resolve related files
-        relatedFilesData = jsonData.get("relatedFiles", laShared.DEFAULT_OTHERFILES)
-        if (relatedFilesData != laShared.DEFAULT_OTHERFILES) and isinstance(relatedFilesData, list):
+        relatedFilesData = jsonData.get("relatedFiles", laShared.DEF_REL_FILES)
+        if (relatedFilesData != laShared.DEF_REL_FILES) and isinstance(relatedFilesData, list):
             # Populate the related files list
             relatedFiles = []
             rfData: dict[str, Any]
             for rfData in relatedFilesData:
                 # Resolve the full filepath
-                relatedFilePath = rfData.get("path", laShared.DEFUALT_OTHERFILE_PATH)
-                if relatedFilePath != laShared.DEFUALT_OTHERFILE_PATH:
+                relatedFilePath = rfData.get("path", laShared.DEF_REL_FILE_PATH)
+                if relatedFilePath != laShared.DEF_REL_FILE_PATH:
                     relatedFilePath = os.path.join(directory, relatedFilePath)
 
                 # Record the related file
                 try:
                     relatedFile = LibAlexRelatedFile(
-                        rfData.get("label", laShared.DEFAULT_OTHERFILE_LABEL),
+                        rfData.get("label", laShared.DEF_REL_FILE_LABEL),
                         relatedFilePath,
-                        rfData.get("description", laShared.DEFAULT_OTHERFILE_DESCRIPTION),
-                        rfData.get("id", laShared.DEFAULT_OTHERFILE_ID)
+                        rfData.get("description", laShared.DEF_REL_FILE_DESC),
+                        rfData.get("id", laShared.DEF_REL_FILE_ID)
                     )
                     relatedFiles.append(relatedFile)
                 except FileNotFoundError as e:
@@ -262,16 +262,16 @@ class LibAlexItem:
         # Build the object
         return cls(
             version=cls.versionFromJson(jsonData),
-            title=jsonData.get("title", laShared.DEFAULT_TITLE),
-            author=jsonData.get("author", laShared.DEFAULT_AUTHOR),
-            date=jsonData.get("date", laShared.DEFAULT_DATE),
-            description=jsonData.get("description", laShared.DEFAULT_DESCRIPTION),
+            title=jsonData.get("title", laShared.DEF_TITLE),
+            author=jsonData.get("author", laShared.DEF_AUTHOR),
+            date=jsonData.get("date", laShared.DEF_DATE),
+            description=jsonData.get("description", laShared.DEF_DESC),
             directory=directory,
             sourceFile=sourceFile,
             relatedFiles=relatedFiles,
             metaFilepath=metaFilepath,
-            classification=jsonData.get("classification", laShared.DEFAULT_CLASSIFICATION),
-            flags=jsonData.get("flags", laShared.DEFAULT_FLAGS),
+            classification=jsonData.get("classification", laShared.DEF_CLASSIFICATION),
+            flags=jsonData.get("flags", laShared.DEF_FLAGS),
             resolvedFlags=resolvedFlags
         )
 
