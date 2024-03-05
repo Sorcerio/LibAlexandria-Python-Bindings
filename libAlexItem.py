@@ -6,10 +6,11 @@ import os
 import json
 
 import libAlexDefaults as laShared
-from libAlexOtherFile import LibAlexOtherFile
-from libAlexVersionData import VersionData
+from libAlexRelatedFile import LibAlexRelatedFile
+from libAlexSemanticVersion import SemanticVersion
 
-# Defaults
+# TODO: Comb over logic and confirm validity.
+# TODO: Add tests.
 
 # Classes
 class LibAlexItem:
@@ -17,7 +18,7 @@ class LibAlexItem:
     A LibAlexandria Item representing the information for the provided directory's meta file and content.
     """
     # Constructor
-    def __init__(self, verbose = False):
+    def __init__(self, verbose: bool = False):
         """
         verbose: If verbose logging should be enabled.
         """
@@ -29,11 +30,11 @@ class LibAlexItem:
         self.isVerbose = verbose
 
         # Prepare default values
-        self.infoVer = None # `None` or a `VersionData` object
+        self.infoVer = None # `None` or a `SemanticVersion` object
         self.classification = laShared.DEFAULT_CLASSIFICATION
         self.title = laShared.DEFAULT_TITLE
         self.author = laShared.DEFAULT_AUTHOR
-        self.date = laShared.DEFAULT_DATE
+        self.date = laShared.DEFAULT_DATE # TODO: Parse dates in `YYYY-MM-DD`, `YYYY/MM/DD`, `MM-DD-YYYY`, and `MM/DD/YYYY` formats
         self.sourceFile = laShared.DEFAULT_SOURCEFILE
         self.otherFiles = laShared.DEFAULT_OTHERFILES
         self.flags = laShared.DEFAULT_FLAGS
@@ -46,8 +47,11 @@ class LibAlexItem:
         else:
             return "Invalid LibAlexandria Item"
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.__dict__})"
+
     # Loader Functions
-    def loadMeta(self, dirpath: str, metaFilename = "meta.json"):
+    def loadMeta(self, dirpath: str, metaFilename: str = "meta.json"): # TODO: Should be a `@classmethod`
         """
         Loads this LibAlexandria Item from the given directory.
 
@@ -97,7 +101,7 @@ class LibAlexItem:
         # Check for validity
         if dataVersion != None:
             # Convert to a data version object
-            dataVersion = VersionData(dataVersion)
+            dataVersion = SemanticVersion(dataVersion)
 
             # Check the version
             if dataVersion.major == 2:
@@ -114,12 +118,12 @@ class LibAlexItem:
         # Overall Failure
         return False
 
-    def _parseVersionTwoData(self, data: dict, version: VersionData) -> bool:
+    def _parseVersionTwoData(self, data: dict, version: SemanticVersion) -> bool:
         """
         Parses the provided Metadata JSON dictionary as a `v2.*` LibAlex dataset and assigns its values to this object.
 
         data: Metadata JSON dictionary.
-        version: A VersionData object.
+        version: A SemanticVersion object.
 
         Returns True if the assigned metadata is valid.
         """
@@ -162,7 +166,7 @@ class LibAlexItem:
                     otherFilePath = os.path.join(self.directory, otherFilePath)
 
                 # Record the other file
-                otherFile = LibAlexOtherFile(
+                otherFile = LibAlexRelatedFile( # TODO: Should parse it's own JSON
                     ofData.get("label", laShared.DEFAULT_OTHERFILE_LABEL),
                     otherFilePath,
                     ofData.get("description", laShared.DEFAULT_OTHERFILE_DESCRIPTION),
@@ -173,7 +177,7 @@ class LibAlexItem:
 
         return isValid
 
-    def _parseVersionOneData(self, data: dict, version: VersionData) -> bool:
+    def _parseVersionOneData(self, data: dict, version: SemanticVersion) -> bool:
         """
         Parses the provided Metadata JSON dictionary as a `v1.*` LibAlex dataset and assigns its values to this object the best it can.
 
@@ -181,7 +185,7 @@ class LibAlexItem:
         This is due to the fact that `v1.*` contains less information than `v2.*` data.
 
         data: Metadata JSON dictionary.
-        version: A VersionData object.
+        version: A SemanticVersion object.
 
         Returns True if the assigned metadata is valid.
         """
@@ -237,6 +241,8 @@ class LibAlexItem:
             # Open and read
             with open(self.sourceFile, 'r') as source:
                 return source.read()
+
+    # TODO: A `toJson` function
 
 # Console Execution
 if __name__ == "__main__":

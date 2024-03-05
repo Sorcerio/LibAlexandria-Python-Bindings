@@ -1,13 +1,13 @@
 # LibAlexandria: Version Data
-# Data object for comparing version numbers.
+# Interprets "Semantic Versioning 2.0.0" strings as code accessible parameters.
 
 # Imports
 import re
 
 # Classes
-class VersionData:
+class SemanticVersion:
     """
-    Interprets a basic Semantic Versioning version string like `1.0.0`.
+    Interprets "Semantic Versioning 2.0.0" strings as code accessible parameters.
     """
     # Constructor
     def __init__(self, s: str):
@@ -15,7 +15,7 @@ class VersionData:
         s: A Semantic Versioning version string like `1.0.0`.
         """
         # Record the basic string
-        self.string = s
+        self.string = s # TODO: Trim "v" and such characters
 
         # Interpret the version
         self.isValid = True
@@ -30,8 +30,8 @@ class VersionData:
     def __str__(self) -> str:
         return self.string
 
-    def __repr__(self) -> str:
-        return self.string
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.__dict__})"
 
     # TODO: eq, ne, lt, le, gt, and ge functions
 
@@ -40,7 +40,7 @@ class VersionData:
         """
         Parses the version string.
 
-        Regex from https://semver.org.
+        Regex from [Semantic Versioning 2.0.0](https://semver.org).
         """
         # Collect matches
         regex = r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$"

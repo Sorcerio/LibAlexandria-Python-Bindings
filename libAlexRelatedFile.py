@@ -1,16 +1,16 @@
-# LibAlexandria: LibAlexandria Other File Object
-# A utility object for defining Other Files for a LibAlexandria Item.
+# LibAlexandria: LibAlexandria Related File Object
+# A utility object for defining an additional file generally associated with a LibAlexandria Item.
 
 # Imports
 import libAlexDefaults as laShared
 
 # Classes
-class LibAlexOtherFile:
+class LibAlexRelatedFile: # TODO: make this a DataObject?
     """
-    An additional file generally associated with a LibAlexandria Item.
+    A utility object for defining an additional file generally associated with a LibAlexandria Item.
     """
     # Constructor
-    def __init__(self, label: str, path: str, description: str, id: str, verbose = False):
+    def __init__(self, label: str, path: str, description: str, id: str, verbose: bool = False):
         """
         label: Title or generic label for the referenced file.
         path: A full filepath to the referenced file.
@@ -25,7 +25,7 @@ class LibAlexOtherFile:
         self.id = id
 
         # Validate the path
-        isValidPath, self.path = laShared.checkPath(self.path)
+        isValidPath, self.path = laShared.checkPath(self.path, verbose=self.isVerbose)
         if not isValidPath:
             if self.isVerbose:
                 print(f"An invalid path was provided for \"{self.label}\": {self.path}")
@@ -34,6 +34,11 @@ class LibAlexOtherFile:
     # Core Functions
     def __str__(self) -> str:
         return f"{self.label} at {self.path}"
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.__dict__})"
+
+    # TODO: A `toJson` function
 
 # Console Execution
 if __name__ == "__main__":

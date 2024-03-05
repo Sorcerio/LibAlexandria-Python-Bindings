@@ -28,7 +28,7 @@ DEFAULT_FLAGS = None
 DEFAULT_DESCRIPTION = "An empty LibAlexandria Item."
 
 # Functions
-def checkPath(path, createPath = False, verbose = False) -> tuple:
+def checkPath(path: str, createPath: bool = False, verbose: bool = False) -> tuple: # TODO: split functionality? 1 func per func
     """
     Cleans and verifies a string path and normalizes it. Also checks the env for validity.
 
@@ -38,7 +38,6 @@ def checkPath(path, createPath = False, verbose = False) -> tuple:
 
     Returns if the path exists and the full resolved path as a Tuple like (True, "...etc").
     """
-
     # Resolve the path of any symbolism
     path = os.path.expanduser(path)
     path = os.path.abspath(path)
@@ -58,7 +57,7 @@ def checkPath(path, createPath = False, verbose = False) -> tuple:
     # Success
     return (True, path)
 
-def slugify(s):
+def slugify(s: str) -> str:
     """
     Converts the provided string into a slugified version
     Modified from [Django](https://github.com/django/django/blob/d3f4c2b95d2a13a5d9bc0e6413dfdbab21388822/django/utils/text.py#L385).
