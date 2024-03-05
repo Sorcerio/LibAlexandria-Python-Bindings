@@ -26,7 +26,7 @@ class LibAlexItem:
         description: str = laShared.DEFAULT_DESCRIPTION,
         directory: Optional[str] = laShared.DEFAULT_ITEM_DIRECTORY,
         sourceFile: Optional[str] = laShared.DEFAULT_SOURCEFILE,
-        otherFiles: Optional[list[LibAlexRelatedFile]] = laShared.DEFAULT_OTHERFILES,
+        relatedFiles: Optional[list[LibAlexRelatedFile]] = laShared.DEFAULT_OTHERFILES,
         metaFilepath: Optional[str] = laShared.DEFAULT_ITEM_METAFILEPATH,
         classification: Optional[str] = laShared.DEFAULT_CLASSIFICATION,
         flags: Optional[list[str]] = laShared.DEFAULT_FLAGS,
@@ -42,7 +42,7 @@ class LibAlexItem:
         description: A description of the item.
         directory: An absolute path to the directory where the item is located or `None`.
         sourceFile: An absolute path to the primary source file of the item or `None`.
-        otherFiles: A list of `LibAlexRelatedFile` objects or `None`.
+        relatedFiles: A list of `LibAlexRelatedFile` objects or `None`.
         metaFilepath: An absolute path to the meta file of the item or `None`.
         classification: The Library of Congress classification of the item's content or `None`.
         flags: A list of flags for the item or `None`.
@@ -55,7 +55,7 @@ class LibAlexItem:
         self.description = description
         self.directory = directory
         self.sourceFile = sourceFile
-        self.otherFiles = otherFiles
+        self.relatedFiles = relatedFiles
         self.metaFilepath = metaFilepath
         self.classification = classification
         self.flags = flags
@@ -65,6 +65,7 @@ class LibAlexItem:
     def fromMetaFile(cls, metaPath: str) -> 'LibAlexItem':
         """
         Loads a LibAlexandria Item from the provided `meta.json` format file.
+        If the operation fails, a `FileNotFoundError`, `json.JSONDecodeError`, or `ValueError` may be raised.
 
         metaPath: The path to the `meta.json` format file.
         """
@@ -100,163 +101,298 @@ class LibAlexItem:
             raise ValueError(f"Could not parse JSON from the provided meta file: {metaPath}\n\nCause: {e}")
 
         # Load from the JSON
-        return cls.fromJson(metaJson, resolvedFlags=resolvedFlags)
+        return cls.fromJson(
+            metaJson,
+            directory=dirPath,
+            resolvedFlags=resolvedFlags
+        )
 
     @classmethod
     def fromJson(cls,
         jsonData: dict[str, Any],
+        directory: Optional[str] = laShared.DEFAULT_ITEM_DIRECTORY,
+        metaFilepath: Optional[str] = laShared.DEFAULT_ITEM_METAFILEPATH,
         resolvedFlags: Optional[list[str]] = laShared.DEFAULT_ITEM_RESOLVEDFLAGS
     ) -> 'LibAlexItem':
         """
         Loads a LibAlexandria Item from the provided JSON data.
+        If the operation fails, a `ValueError` or `FileNotFoundError` may be raised.
 
         jsonData: The JSON data to load.
+        directory: An absolute path to the directory where the item is located.
+        metaFilepath: An absolute path to the meta file of the item.
         resolvedFlags: Any additional resolved flags to add to the item.
 
         Returns a new LibAlexandria Item.
         """
-        print(jsonData)
-        print(resolvedFlags)
-        exit()
+        # Get the version or fail
+        dataVersion = cls.versionFromJson(jsonData)
+
+        # Pack the args
+        packedArgs = {
+            "jsonData": jsonData,
+            "directory": directory,
+            "metaFilepath": metaFilepath,
+            "resolvedFlags": resolvedFlags
+        }
+
+        # Check the version
+        if dataVersion.major == 2:
+            return cls._fromV2Json(**packedArgs)
+        elif dataVersion.major == 1:
+            return cls._fromV1Json(**packedArgs)
+        else:
+            # Fail
+            raise ValueError(f"\"{dataVersion.string}\" is not a supported version of LibAlexandria Metadata file.")
+
+    @classmethod
+    def versionFromJson(cls, jsonData: dict[str, Any]) -> SemanticVersion:
+        """
+        Extracts the version of the provided JSON data.
+        If a version is not found, a `ValueError` may be raised.
+
+        jsonData: The JSON data to extract the version from.
+
+        Returns a SemanticVersion object.
+        """
+        # Extract the version code
+        dataVersion = jsonData.get("_infover", None)
+
+        # Check for validity
+        if dataVersion != None:
+            return SemanticVersion(dataVersion)
+        else:
+            # Fail
+            raise ValueError(f"Provided LibAlexandria Metadata file does not provide a version using the `_infover` key.")
+
+    @classmethod
+    def _fromV1Json(cls,
+        jsonData: dict[str, Any],
+        directory: Optional[str] = laShared.DEFAULT_ITEM_DIRECTORY,
+        metaFilepath: Optional[str] = laShared.DEFAULT_ITEM_METAFILEPATH,
+        resolvedFlags: Optional[list[str]] = laShared.DEFAULT_ITEM_RESOLVEDFLAGS
+    ) -> 'LibAlexItem':
+        """
+        Loads a LibAlexandria Item from the provided `v1.*` JSON data.
+        If the operation fails, a `ValueError` may be raised.
+
+        jsonData: The JSON data to load.
+        directory: An absolute path to the directory where the item is located.
+        metaFilepath: An absolute path to the meta file of the item.
+        resolvedFlags: Any additional resolved flags to add to the item.
+
+        Returns a new LibAlexandria Item.
+        """
+        pass
+
+    @classmethod
+    def _fromV2Json(cls,
+        jsonData: dict[str, Any],
+        directory: Optional[str] = laShared.DEFAULT_ITEM_DIRECTORY,
+        metaFilepath: Optional[str] = laShared.DEFAULT_ITEM_METAFILEPATH,
+        resolvedFlags: Optional[list[str]] = laShared.DEFAULT_ITEM_RESOLVEDFLAGS
+    ) -> 'LibAlexItem':
+        """
+        Loads a LibAlexandria Item from the provided `v2.*` JSON data.
+        If the operation fails, a `ValueError` or `FileNotFoundError` may be raised.
+
+        jsonData: The JSON data to load.
+        directory: An absolute path to the directory where the item is located.
+        metaFilepath: An absolute path to the meta file of the item.
+        resolvedFlags: Any additional resolved flags to add to the item.
+
+        Returns a new LibAlexandria Item.
+        """
+        # Resolve the source file
+        sourceFile = jsonData.get("sourceFile", laShared.DEFAULT_SOURCEFILE)
+        if (sourceFile != laShared.DEFAULT_SOURCEFILE) and isinstance(sourceFile, str):
+            # Build the full path
+            sourceFile = os.path.join(directory, sourceFile)
+
+            # Check if the source file exists
+            if not os.path.isfile(sourceFile):
+                # Fail
+                raise FileNotFoundError(f"Provided source filepath could not be resolved: {sourceFile}")
+
+        # Resolve related files
+        relatedFilesData = jsonData.get("relatedFiles", laShared.DEFAULT_OTHERFILES)
+        if (relatedFilesData != laShared.DEFAULT_OTHERFILES) and isinstance(relatedFilesData, list):
+            # Populate the related files list
+            relatedFiles = []
+            rfData: dict[str, Any]
+            for rfData in relatedFilesData:
+                # Resolve the full filepath
+                relatedFilePath = rfData.get("path", laShared.DEFUALT_OTHERFILE_PATH)
+                if relatedFilePath != laShared.DEFUALT_OTHERFILE_PATH:
+                    relatedFilePath = os.path.join(directory, relatedFilePath)
+
+                # Record the related file
+                try:
+                    relatedFile = LibAlexRelatedFile(
+                        rfData.get("label", laShared.DEFAULT_OTHERFILE_LABEL),
+                        relatedFilePath,
+                        rfData.get("description", laShared.DEFAULT_OTHERFILE_DESCRIPTION),
+                        rfData.get("id", laShared.DEFAULT_OTHERFILE_ID)
+                    )
+                    relatedFiles.append(relatedFile)
+                except FileNotFoundError as e:
+                    raise FileNotFoundError(f"Failed to load a Related File because:\n{e}")
+        else:
+            # No data
+            relatedFiles = relatedFilesData
+
+        # Build the object
+        return cls(
+            version=cls.versionFromJson(jsonData),
+            title=jsonData.get("title", laShared.DEFAULT_TITLE),
+            author=jsonData.get("author", laShared.DEFAULT_AUTHOR),
+            date=jsonData.get("date", laShared.DEFAULT_DATE),
+            description=jsonData.get("description", laShared.DEFAULT_DESCRIPTION),
+            directory=directory,
+            sourceFile=sourceFile,
+            relatedFiles=relatedFiles,
+            metaFilepath=metaFilepath,
+            classification=jsonData.get("classification", laShared.DEFAULT_CLASSIFICATION),
+            flags=jsonData.get("flags", laShared.DEFAULT_FLAGS),
+            resolvedFlags=resolvedFlags
+        )
 
     # Python Functions
     def __str__(self) -> str:
-        if self.isLoaded:
-            return f"{self.title} by {self.author} ({self.date})"
-        else:
-            return "Invalid LibAlexandria Item"
+        return f"{self.title} by {self.author} ({self.date})"
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.__dict__})"
 
     # Loader Functions
-    def loadMeta(self, dirpath: str, metaFilename: str = "meta.json"): # TODO: Should be a `@classmethod`
-        """
-        Loads this LibAlexandria Item from the given directory.
+    # def loadMeta(self, dirpath: str, metaFilename: str = "meta.json"): # TODO: Should be a `@classmethod`
+    #     """
+    #     Loads this LibAlexandria Item from the given directory.
 
-        dirpath: The path to a directory that conforms to Lib Alexandria standard.
-        metaFilename: The filename and extension of the meta file to load within the provided `dirpath`.
-        """
-        # Check the directory path
-        self.directory = laShared.fullpath(dirpath)
-        if laShared.checkPath(self.directory):
-            # Check the meta file path
-            self.metaFilepath = os.path.join(self.directory, metaFilename)
-            if os.path.isfile(self.metaFilepath):
-                # TODO: Resolve additional flags from the directory structure to `resolvedFlags`
+    #     dirpath: The path to a directory that conforms to Lib Alexandria standard.
+    #     metaFilename: The filename and extension of the meta file to load within the provided `dirpath`.
+    #     """
+    #     # Check the directory path
+    #     self.directory = laShared.fullpath(dirpath)
+    #     if laShared.checkPath(self.directory):
+    #         # Check the meta file path
+    #         self.metaFilepath = os.path.join(self.directory, metaFilename)
+    #         if os.path.isfile(self.metaFilepath):
+    #             # TODO: Resolve additional flags from the directory structure to `resolvedFlags`
 
-                # Read the meta file
-                with open(self.metaFilepath, "r") as metaFile:
-                    # Load the meta json data
-                    # TODO: Add failure message for bad JSON load
-                    metaJson = json.loads(metaFile.read())
+    #             # Read the meta file
+    #             with open(self.metaFilepath, "r") as metaFile:
+    #                 # Load the meta json data
+    #                 # TODO: Add failure message for bad JSON load
+    #                 metaJson = json.loads(metaFile.read())
 
-                    # Verify the base level of the json
-                    if isinstance(metaJson, dict):
-                        # Assign values
-                        self.isLoaded = self._assignMetadata(metaJson)
-                    else:
-                        # Failed
-                        print(f"\"{self.metaFilepath}\" is not a valid Metadata file.")
-            else:
-                # Failed
-                print(f"\"{self.metaFilepath}\" could not be found within the provided directory: {self.directory}")
-        else:
-            # Failed
-            print(f"Provided directory does not exist: {self.directory}")
+    #                 # Verify the base level of the json
+    #                 if isinstance(metaJson, dict):
+    #                     # Assign values
+    #                     self.isLoaded = self._assignMetadata(metaJson)
+    #                 else:
+    #                     # Failed
+    #                     print(f"\"{self.metaFilepath}\" is not a valid Metadata file.")
+    #         else:
+    #             # Failed
+    #             print(f"\"{self.metaFilepath}\" could not be found within the provided directory: {self.directory}")
+    #     else:
+    #         # Failed
+    #         print(f"Provided directory does not exist: {self.directory}")
 
     # Private Functions
-    def _assignMetadata(self, data: dict) -> bool:
-        """
-        Parses the provided Metadata JSON dictionary and assigns its values to this object.
 
-        data: Metadata JSON dictionary.
+    # def _assignMetadata(self, data: dict) -> bool:
+    #     """
+    #     Parses the provided Metadata JSON dictionary and assigns its values to this object.
 
-        Returns True if the assigned metadata is valid.
-        """
-        # Get the version code
-        dataVersion = data.get("_infover", None)
+    #     data: Metadata JSON dictionary.
 
-        # Check for validity
-        if dataVersion != None:
-            # Convert to a data version object
-            dataVersion = SemanticVersion(dataVersion)
+    #     Returns True if the assigned metadata is valid.
+    #     """
+    #     # Get the version code
+    #     dataVersion = data.get("_infover", None)
 
-            # Check the version
-            if dataVersion.major == 2:
-                return self._parseVersionTwoData(data, dataVersion)
-            elif dataVersion.major == 1:
-                return self._parseVersionOneData(data, dataVersion)
-            else:
-                # Failed
-                print(f"\"{dataVersion.string}\" is not a supported version of Meta file.")
-        else:
-            # Failed
-            print(f"\"{self.metaFilepath}\" does not provide a Meta file version using the `_infover` key.")
+    #     # Check for validity
+    #     if dataVersion != None:
+    #         # Convert to a data version object
+    #         dataVersion = SemanticVersion(dataVersion)
 
-        # Overall Failure
-        return False
+    #         # Check the version
+    #         if dataVersion.major == 2:
+    #             return self._parseVersionTwoData(data, dataVersion)
+    #         elif dataVersion.major == 1:
+    #             return self._parseVersionOneData(data, dataVersion)
+    #         else:
+    #             # Failed
+    #             print(f"\"{dataVersion.string}\" is not a supported version of Meta file.")
+    #     else:
+    #         # Failed
+    #         print(f"\"{self.metaFilepath}\" does not provide a Meta file version using the `_infover` key.")
 
-    def _parseVersionTwoData(self, data: dict, version: SemanticVersion) -> bool:
-        """
-        Parses the provided Metadata JSON dictionary as a `v2.*` LibAlex dataset and assigns its values to this object.
+    #     # Overall Failure
+    #     return False
 
-        data: Metadata JSON dictionary.
-        version: A SemanticVersion object.
+    # def _parseVersionTwoData(self, data: dict, version: SemanticVersion) -> bool:
+    #     """
+    #     Parses the provided Metadata JSON dictionary as a `v2.*` LibAlex dataset and assigns its values to this object.
 
-        Returns True if the assigned metadata is valid.
-        """
-        # Prepare flag
-        isValid = True
+    #     data: Metadata JSON dictionary.
+    #     version: A SemanticVersion object.
 
-        # Assign easy values
-        self.infoVer = version
-        self.classification = data.get("classification", laShared.DEFAULT_CLASSIFICATION)
-        self.title = data.get("title", laShared.DEFAULT_TITLE)
-        self.author = data.get("author", laShared.DEFAULT_AUTHOR)
-        self.date = data.get("date", laShared.DEFAULT_DATE)
-        self.flags = data.get("flags", laShared.DEFAULT_FLAGS)
-        self.description = data.get("description", laShared.DEFAULT_DESCRIPTION)
+    #     Returns True if the assigned metadata is valid.
+    #     """
+    #     # Prepare flag
+    #     isValid = True
 
-        # Assign source file
-        sourceFileRaw = data.get("sourceFile", laShared.DEFAULT_SOURCEFILE)
-        if (sourceFileRaw != laShared.DEFAULT_SOURCEFILE) and isinstance(sourceFileRaw, str):
-            sourceFileRaw = os.path.join(self.directory, sourceFileRaw)
-            if os.path.isfile(sourceFileRaw):
-                self.sourceFile = sourceFileRaw
-            else:
-                if self.isVerbose:
-                    print(f"Provided source file path is invalid: {sourceFileRaw}")
-                isValid = False
-        else:
-            if self.isVerbose:
-                print(f"Provided source file path is invalid: {sourceFileRaw}")
-            isValid = False
+    #     # Assign easy values
+    #     self.infoVer = version
+    #     self.classification = data.get("classification", laShared.DEFAULT_CLASSIFICATION)
+    #     self.title = data.get("title", laShared.DEFAULT_TITLE)
+    #     self.author = data.get("author", laShared.DEFAULT_AUTHOR)
+    #     self.date = data.get("date", laShared.DEFAULT_DATE)
+    #     self.flags = data.get("flags", laShared.DEFAULT_FLAGS)
+    #     self.description = data.get("description", laShared.DEFAULT_DESCRIPTION)
 
-        # Assign other files
-        otherFilesRaw = data.get("otherFiles", laShared.DEFAULT_OTHERFILES)
-        if (otherFilesRaw != laShared.DEFAULT_OTHERFILES) and isinstance(otherFilesRaw, list):
-            # Populate the other files list
-            self.otherFiles = []
-            for ofData in otherFilesRaw:
-                # Resolve the full filepath
-                otherFilePath = ofData.get("path", laShared.DEFUALT_OTHERFILE_PATH)
-                if otherFilePath != laShared.DEFUALT_OTHERFILE_PATH:
-                    otherFilePath = os.path.join(self.directory, otherFilePath)
+    #     # Assign source file
+    #     sourceFileRaw = data.get("sourceFile", laShared.DEFAULT_SOURCEFILE)
+    #     if (sourceFileRaw != laShared.DEFAULT_SOURCEFILE) and isinstance(sourceFileRaw, str):
+    #         sourceFileRaw = os.path.join(self.directory, sourceFileRaw)
+    #         if os.path.isfile(sourceFileRaw):
+    #             self.sourceFile = sourceFileRaw
+    #         else:
+    #             if self.isVerbose:
+    #                 print(f"Provided source file path is invalid: {sourceFileRaw}")
+    #             isValid = False
+    #     else:
+    #         if self.isVerbose:
+    #             print(f"Provided source file path is invalid: {sourceFileRaw}")
+    #         isValid = False
 
-                # Record the other file
-                try:
-                    otherFile = LibAlexRelatedFile(
-                        ofData.get("label", laShared.DEFAULT_OTHERFILE_LABEL),
-                        otherFilePath,
-                        ofData.get("description", laShared.DEFAULT_OTHERFILE_DESCRIPTION),
-                        ofData.get("id", laShared.DEFAULT_OTHERFILE_ID)
-                    )
-                    self.otherFiles.append(otherFile)
-                except FileNotFoundError as e:
-                    print("Failed to load a Related File because:\n", e)
+    #     # Assign other files
+    #     otherFilesRaw = data.get("otherFiles", laShared.DEFAULT_OTHERFILES)
+    #     if (otherFilesRaw != laShared.DEFAULT_OTHERFILES) and isinstance(otherFilesRaw, list):
+    #         # Populate the other files list
+    #         self.otherFiles = []
+    #         for ofData in otherFilesRaw:
+    #             # Resolve the full filepath
+    #             otherFilePath = ofData.get("path", laShared.DEFUALT_OTHERFILE_PATH)
+    #             if otherFilePath != laShared.DEFUALT_OTHERFILE_PATH:
+    #                 otherFilePath = os.path.join(self.directory, otherFilePath)
 
-        return isValid
+    #             # Record the other file
+    #             try:
+    #                 otherFile = LibAlexRelatedFile(
+    #                     ofData.get("label", laShared.DEFAULT_OTHERFILE_LABEL),
+    #                     otherFilePath,
+    #                     ofData.get("description", laShared.DEFAULT_OTHERFILE_DESCRIPTION),
+    #                     ofData.get("id", laShared.DEFAULT_OTHERFILE_ID)
+    #                 )
+    #                 self.otherFiles.append(otherFile)
+    #             except FileNotFoundError as e:
+    #                 print("Failed to load a Related File because:\n", e)
+
+    #     return isValid
 
     def _parseVersionOneData(self, data: dict, version: SemanticVersion) -> bool:
         """
