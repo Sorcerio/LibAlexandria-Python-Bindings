@@ -2,15 +2,18 @@
 # A utility object for defining an additional file generally associated with a LibAlexandria Item.
 
 # Imports
+import json
+from typing import Optional
+
 import libAlexDefaults as laShared
 
 # Classes
-class LibAlexRelatedFile: # TODO: make this a DataObject?
+class LibAlexRelatedFile:
     """
     A utility object for defining an additional file generally associated with a LibAlexandria Item.
     """
-    # Constructor
-    def __init__(self, label: str, path: str, description: str, id: str, verbose: bool = False):
+    # Constructors
+    def __init__(self, label: str, path: str, description: str, id: Optional[str] = None):
         """
         label: Title or generic label for the referenced file.
         path: A full filepath to the referenced file.
@@ -18,7 +21,6 @@ class LibAlexRelatedFile: # TODO: make this a DataObject?
         id: A string identifier for the referenced file or `None`.
         """
         # Assign values
-        self.isVerbose = verbose
         self.label = label
         self.path = path
         self.description = description
@@ -26,19 +28,34 @@ class LibAlexRelatedFile: # TODO: make this a DataObject?
 
         # Validate the path
         self.path = laShared.fullpath(self.path)
-        if not laShared.checkPath(self.path, verbose=self.isVerbose):
-            if self.isVerbose:
-                print(f"An invalid path was provided for \"{self.label}\": {self.path}")
-            self.path = laShared.DEFUALT_OTHERFILE_PATH
 
-    # Core Functions
+        if not laShared.checkPath(self.path):
+            raise FileNotFoundError(f"Related File called \"{self.label}\" could not be found at: {self.path}")
+
+    # Python Functions
     def __str__(self) -> str:
         return f"{self.label} at {self.path}"
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.__dict__})"
 
-    # TODO: A `toJson` function
+    # Functions
+    def toJson(self) -> dict:
+        """
+        Returns a dictionary representation of the object.
+        """
+        return {
+            "label": self.label,
+            "path": self.path,
+            "description": self.description,
+            "id": self.id
+        }
+
+    def toJsonStr(self) -> str:
+        """
+        Returns a JSON string representation of the object.
+        """
+        return json.dumps(self.toJson())
 
 # Console Execution
 if __name__ == "__main__":

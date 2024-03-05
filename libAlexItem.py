@@ -60,7 +60,7 @@ class LibAlexItem:
         """
         # Check the directory path
         self.directory = laShared.fullpath(dirpath)
-        if laShared.checkPath(self.directory, verbose=self.isVerbose):
+        if laShared.checkPath(self.directory):
             # Check the meta file path
             self.metaFilepath = os.path.join(self.directory, metaFilename)
             if os.path.isfile(self.metaFilepath):
@@ -166,14 +166,16 @@ class LibAlexItem:
                     otherFilePath = os.path.join(self.directory, otherFilePath)
 
                 # Record the other file
-                otherFile = LibAlexRelatedFile( # TODO: Should parse it's own JSON
-                    ofData.get("label", laShared.DEFAULT_OTHERFILE_LABEL),
-                    otherFilePath,
-                    ofData.get("description", laShared.DEFAULT_OTHERFILE_DESCRIPTION),
-                    ofData.get("id", laShared.DEFAULT_OTHERFILE_ID),
-                    verbose=self.isVerbose
-                )
-                self.otherFiles.append(otherFile)
+                try:
+                    otherFile = LibAlexRelatedFile(
+                        ofData.get("label", laShared.DEFAULT_OTHERFILE_LABEL),
+                        otherFilePath,
+                        ofData.get("description", laShared.DEFAULT_OTHERFILE_DESCRIPTION),
+                        ofData.get("id", laShared.DEFAULT_OTHERFILE_ID)
+                    )
+                    self.otherFiles.append(otherFile)
+                except FileNotFoundError as e:
+                    print("Failed to load a Related File because:\n", e)
 
         return isValid
 
