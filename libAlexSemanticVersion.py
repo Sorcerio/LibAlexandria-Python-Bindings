@@ -15,15 +15,21 @@ class SemanticVersion:
         s: A Semantic Versioning version string like `1.0.0`.
         """
         # Record the basic string
-        self.string = s # TODO: Trim "v" and such characters
+        self.string = s
 
-        # Interpret the version
+        # Check for leading version character
+        if self.string[0].lower() == "v":
+            self.string = self.string[1:]
+
+        # Assign initial values
         self.isValid = True
         self.major = 0
         self.minor = 0
         self.patch = 0
         self.preRelease = ""
         self.metaData = ""
+
+        # Interpret the version
         self._parse()
 
     # Python Functions
@@ -33,7 +39,23 @@ class SemanticVersion:
     def __repr__(self):
         return f"{self.__class__.__name__}({self.__dict__})"
 
-    # TODO: eq, ne, lt, le, gt, and ge functions
+    def __eq__(self, other: 'SemanticVersion') -> bool:
+        return self.string == other.string
+
+    def __ne__(self, other: 'SemanticVersion') -> bool:
+        return self.string != other.string
+
+    def __lt__(self, other: 'SemanticVersion') -> bool:
+        return self._versionTuple() < other._versionTuple()
+
+    def __le__(self, other: 'SemanticVersion') -> bool:
+        return self._versionTuple() <= other._versionTuple()
+
+    def __gt__(self, other: 'SemanticVersion') -> bool:
+        return self._versionTuple() > other._versionTuple()
+
+    def __ge__(self, other: 'SemanticVersion') -> bool:
+        return self._versionTuple() >= other._versionTuple()
 
     # Private Functions
     def _parse(self):
@@ -82,6 +104,12 @@ class SemanticVersion:
 
             # Get the build meta data
             self.metaData = match.group(5)
+
+    def _versionTuple(self) -> tuple[int, int, int]:
+        """
+        Returns the version values as a tuple.
+        """
+        return (self.major, self.minor, self.patch)
 
 # Console Execution
 if __name__ == "__main__":
