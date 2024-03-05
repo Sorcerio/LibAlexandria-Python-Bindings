@@ -61,7 +61,7 @@ def checkPath(path, createPath = False, verbose = False) -> tuple:
 def slugify(s):
     """
     Converts the provided string into a slugified version
-    Modified from (Django)[https://github.com/django/django/blob/d3f4c2b95d2a13a5d9bc0e6413dfdbab21388822/django/utils/text.py#L385].
+    Modified from [Django](https://github.com/django/django/blob/d3f4c2b95d2a13a5d9bc0e6413dfdbab21388822/django/utils/text.py#L385).
 
     s: String to slugify.
 
