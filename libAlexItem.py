@@ -4,12 +4,12 @@
 # Imports
 import os
 import json
+from typing import Optional, Any
 
 import libAlexDefaults as laShared
 from libAlexRelatedFile import LibAlexRelatedFile
 from libAlexSemanticVersion import SemanticVersion
 
-# TODO: Comb over logic and confirm validity.
 # TODO: Add tests.
 
 # Classes
@@ -17,28 +17,107 @@ class LibAlexItem:
     """
     A LibAlexandria Item representing the information for the provided directory's meta file and content.
     """
-    # Constructor
-    def __init__(self, verbose: bool = False):
+    # Constructors
+    def __init__(self,
+        version: Optional[SemanticVersion] = None,
+        title: str = laShared.DEFAULT_TITLE,
+        author: str = laShared.DEFAULT_AUTHOR,
+        date: str = laShared.DEFAULT_DATE,
+        description: str = laShared.DEFAULT_DESCRIPTION,
+        directory: Optional[str] = laShared.DEFAULT_ITEM_DIRECTORY,
+        sourceFile: Optional[str] = laShared.DEFAULT_SOURCEFILE,
+        otherFiles: Optional[list[LibAlexRelatedFile]] = laShared.DEFAULT_OTHERFILES,
+        metaFilepath: Optional[str] = laShared.DEFAULT_ITEM_METAFILEPATH,
+        classification: Optional[str] = laShared.DEFAULT_CLASSIFICATION,
+        flags: Optional[list[str]] = laShared.DEFAULT_FLAGS,
+        resolvedFlags: Optional[list[str]] = laShared.DEFAULT_ITEM_RESOLVEDFLAGS
+    ):
         """
-        verbose: If verbose logging should be enabled.
-        """
-        # Assign variables
-        self.isLoaded = False
-        self.directory = laShared.DEFAULT_ITEM_DIRECTORY
-        self.metaFilepath = laShared.DEFAULT_ITEM_METAFILEPATH
-        self.resolvedFlags = laShared.DEFAULT_ITEM_RESOLVEDFLAGS
-        self.isVerbose = verbose
+        Creates a new LibAlexandria Item.
 
-        # Prepare default values
-        self.infoVer = None # `None` or a `SemanticVersion` object
-        self.classification = laShared.DEFAULT_CLASSIFICATION
-        self.title = laShared.DEFAULT_TITLE
-        self.author = laShared.DEFAULT_AUTHOR
-        self.date = laShared.DEFAULT_DATE # TODO: Parse dates in `YYYY-MM-DD`, `YYYY/MM/DD`, `MM-DD-YYYY`, and `MM/DD/YYYY` formats
-        self.sourceFile = laShared.DEFAULT_SOURCEFILE
-        self.otherFiles = laShared.DEFAULT_OTHERFILES
-        self.flags = laShared.DEFAULT_FLAGS
-        self.description = laShared.DEFAULT_DESCRIPTION
+        version: The version of the item.
+        title: The title of the item.
+        author: The author of the item.
+        date: The date the item was originally written.
+        description: A description of the item.
+        directory: An absolute path to the directory where the item is located or `None`.
+        sourceFile: An absolute path to the primary source file of the item or `None`.
+        otherFiles: A list of `LibAlexRelatedFile` objects or `None`.
+        metaFilepath: An absolute path to the meta file of the item or `None`.
+        classification: The Library of Congress classification of the item's content or `None`.
+        flags: A list of flags for the item or `None`.
+        resolvedFlags: A list of any additional resolved flags for the item or `None`.
+        """
+        self.version = version
+        self.title = title
+        self.author = author
+        self.date = date # TODO: Parse dates in `YYYY-MM-DD`, `YYYY/MM/DD`, `MM-DD-YYYY`, and `MM/DD/YYYY` formats
+        self.description = description
+        self.directory = directory
+        self.sourceFile = sourceFile
+        self.otherFiles = otherFiles
+        self.metaFilepath = metaFilepath
+        self.classification = classification
+        self.flags = flags
+        self.resolvedFlags = resolvedFlags
+
+    @classmethod
+    def fromMetaFile(cls, metaPath: str) -> 'LibAlexItem':
+        """
+        Loads a LibAlexandria Item from the provided `meta.json` format file.
+
+        metaPath: The path to the `meta.json` format file.
+        """
+        # Manage paths
+        metaPath = laShared.fullpath(metaPath)
+        dirPath = os.path.dirname(metaPath)
+
+        # Verify the paths exist
+        if not os.path.isdir(dirPath):
+            # Fail
+            raise FileNotFoundError(f"No directory present to load from at: {dirPath}")
+
+        if not os.path.isfile(metaPath):
+            # Check if the user doesn't read documentation
+            if os.path.isfile(os.path.join(metaPath, "meta.json")):
+                # Correct the meta path
+                metaPath = os.path.join(metaPath, "meta.json")
+                dirPath = os.path.dirname(metaPath)
+            else:
+                # Fail
+                raise FileNotFoundError(f"No meta file was present at: {metaPath}")
+
+        # Resolve additional flags from the directory structure
+        resolvedFlags = [laShared.slugify(t) for t in (dirPath.split(os.sep)[1:])]
+
+        # Read the meta file
+        try:
+            with open(metaPath, "r") as metaFile:
+                # Load the meta json data
+                metaJson: dict[str, Any] = json.load(metaFile)
+        except json.JSONDecodeError as e:
+            # Fail
+            raise ValueError(f"Could not parse JSON from the provided meta file: {metaPath}\n\nCause: {e}")
+
+        # Load from the JSON
+        return cls.fromJson(metaJson, resolvedFlags=resolvedFlags)
+
+    @classmethod
+    def fromJson(cls,
+        jsonData: dict[str, Any],
+        resolvedFlags: Optional[list[str]] = laShared.DEFAULT_ITEM_RESOLVEDFLAGS
+    ) -> 'LibAlexItem':
+        """
+        Loads a LibAlexandria Item from the provided JSON data.
+
+        jsonData: The JSON data to load.
+        resolvedFlags: Any additional resolved flags to add to the item.
+
+        Returns a new LibAlexandria Item.
+        """
+        print(jsonData)
+        print(resolvedFlags)
+        exit()
 
     # Python Functions
     def __str__(self) -> str:
