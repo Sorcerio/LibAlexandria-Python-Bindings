@@ -1,4 +1,4 @@
-# LibAlexandria: Version Data
+# LibAlexandria: Senamtic Versioning
 # Interprets "Semantic Versioning 2.0.0" strings as code accessible parameters.
 
 # Imports
@@ -64,11 +64,24 @@ class SemanticVersion:
 
         Regex from [Semantic Versioning 2.0.0](https://semver.org).
         """
+        # Check if the string is valid
+        if not isinstance(self.string, str):
+            print(f"An invalid type (\"{type(self.string)}\") of version string was provided: {self.string}.")
+            self.isValid = False
+            return
+
+        # Check if a number is actually present
+        if (len(self.string.strip()) == 0) or not (any(i.isdigit() for i in self.string)):
+            print(f"No numbers were provided in the version string: \"{self.string}\".")
+            self.isValid = False
+            return
+
         # Collect matches
         regex = r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$"
         matches = re.finditer(regex, self.string, re.MULTILINE)
 
         # Loop through matches
+        matchNum = -1
         for matchNum, match in enumerate(matches, start=1):
             # Only accept one version set
             if matchNum > 1:
@@ -101,9 +114,18 @@ class SemanticVersion:
 
             # Get the pre-release
             self.preRelease = match.group(4)
+            if self.preRelease is None:
+                self.preRelease = ""
 
             # Get the build meta data
             self.metaData = match.group(5)
+            if self.metaData is None:
+                self.metaData = ""
+
+        # Check if any matches were even found
+        if matchNum < 1:
+            print(f"No valid version code matches were found in: \"{self.string}\".")
+            self.isValid = False
 
     def _versionTuple(self) -> tuple[int, int, int]:
         """
