@@ -105,6 +105,7 @@ class LibAlexItem:
         return cls.fromJson(
             metaJson,
             directory=dirPath,
+            metaFilepath=metaPath,
             resolvedFlags=resolvedFlags
         )
 
@@ -233,7 +234,7 @@ class LibAlexItem:
                 raise FileNotFoundError(f"Provided source filepath could not be resolved: {sourceFile}")
 
         # Resolve related files
-        relatedFilesData = jsonData.get("relatedFiles", laShared.DEF_REL_FILES)
+        relatedFilesData = jsonData.get("otherFiles", laShared.DEF_REL_FILES)
         if (relatedFilesData != laShared.DEF_REL_FILES) and isinstance(relatedFilesData, list):
             # Populate the related files list
             relatedFiles = []
@@ -299,9 +300,36 @@ class LibAlexItem:
         if isinstance(self.classification, str):
             allFlags.append(self.classification)
 
-        return sorted(allFlags)
+        return sorted(tuple(set(allFlags)))
 
-    # TODO: A `toJson` function
+    def toJson(self) -> dict[str, Any]:
+        """
+        Returns the JSON representation of the item.
+        """
+        # Build the JSON
+        jsonData = {
+            "_infover": (self.version.string if isinstance(self.version, SemanticVersion) else laShared.VER_LIBALEX),
+        }
+
+        if isinstance(self.classification, str):
+            jsonData["classification"] = self.classification
+
+        jsonData["title"] = self.title
+        jsonData["author"] = self.author
+        jsonData["date"] = self.date
+
+        if isinstance(self.sourceFile, str):
+            jsonData["sourceFile"] = self.sourceFile
+
+        if isinstance(self.relatedFiles, list):
+            jsonData["otherFiles"] = [rf.toJson() for rf in self.relatedFiles]
+
+        if isinstance(self.flags, list):
+            jsonData["flags"] = self.flags
+
+        jsonData["description"] = self.description
+
+        return jsonData
 
 # Console Execution
 if __name__ == "__main__":
