@@ -25,8 +25,8 @@ class LibAlexRelatedFile: # TODO: make this a DataObject?
         self.id = id
 
         # Validate the path
-        isValidPath, self.path = laShared.checkPath(self.path, verbose=self.isVerbose)
-        if not isValidPath:
+        self.path = laShared.fullpath(self.path)
+        if not laShared.checkPath(self.path, verbose=self.isVerbose):
             if self.isVerbose:
                 print(f"An invalid path was provided for \"{self.label}\": {self.path}")
             self.path = laShared.DEFUALT_OTHERFILE_PATH

@@ -28,19 +28,27 @@ DEFAULT_FLAGS = None
 DEFAULT_DESCRIPTION = "An empty LibAlexandria Item."
 
 # Functions
-def checkPath(path: str, createPath: bool = False, verbose: bool = False) -> tuple: # TODO: split functionality? 1 func per func
+def fullpath(path: str) -> str:
     """
-    Cleans and verifies a string path and normalizes it. Also checks the env for validity.
+    Returns the full path of the provided path.
+
+    path: The path to resolve.
+
+    Returns the full path.
+    """
+    return os.path.abspath(os.path.expanduser(path))
+
+def checkPath(path: str, createPath: bool = False) -> bool:
+    """
+    Checks if the provided path exists; and creates it if specified.
 
     path: The string path to clean.
     createPath: Boolean indicating if the path should be created if it doesn't exist.
-    verbose: If verbose logging should be enabled.
 
-    Returns if the path exists and the full resolved path as a Tuple like (True, "...etc").
+    Returns if the path exists.
     """
-    # Resolve the path of any symbolism
-    path = os.path.expanduser(path)
-    path = os.path.abspath(path)
+    # Get the full path
+    path = fullpath(path)
 
     # Check if the path exists
     if not os.path.exists(path):
@@ -49,13 +57,10 @@ def checkPath(path: str, createPath: bool = False, verbose: bool = False) -> tup
             os.makedirs(path)
         else:
             # Fail
-            if verbose:
-                print(f"Provided path does not exist: {path}")
-
-            return (False, path)
+            return False
 
     # Success
-    return (True, path)
+    return True
 
 def slugify(s: str) -> str:
     """

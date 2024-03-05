@@ -59,8 +59,8 @@ class LibAlexItem:
         metaFilename: The filename and extension of the meta file to load within the provided `dirpath`.
         """
         # Check the directory path
-        dirIsValid, self.directory = laShared.checkPath(dirpath, verbose=self.isVerbose)
-        if dirIsValid:
+        self.directory = laShared.fullpath(dirpath)
+        if laShared.checkPath(self.directory, verbose=self.isVerbose):
             # Check the meta file path
             self.metaFilepath = os.path.join(self.directory, metaFilename)
             if os.path.isfile(self.metaFilepath):
