@@ -192,6 +192,7 @@ class LibAlexItem:
         # Mock v2 style data
         return cls._fromV2Json(
             {
+                "_infover": laShared.VER_LIBALEX,
                 "title": jsonData.get("title", laShared.DEF_TITLE),
                 "author": jsonData.get("author", laShared.DEF_AUTHOR),
                 "date": jsonData.get("date", laShared.DEF_DATE),
