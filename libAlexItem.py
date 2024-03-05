@@ -285,29 +285,21 @@ class LibAlexItem:
     # Functions
     def getAllFlags(self) -> list:
         """
-        Returns all flags including metadata specified, resolved from filepath, and metadata classification.
+        Returns all flags including the specified flags, classification, and resolved flags.
         """
-        # Check if loaded
-        if self.isLoaded:
-            # Determine if the flag lists are valid
-            flagsIsList = isinstance(self.flags, list)
-            resolvedFlagsIsList = isinstance(self.resolvedFlags, list)
+        # Create a copy of all present flags
+        allFlags: list[str] = []
 
-            if flagsIsList and resolvedFlagsIsList:
-                # Both flags
-                allFlags = self.flags + self.resolvedFlags
-                allFlags.append(self.classification)
-                return allFlags
-            elif flagsIsList:
-                # Only metadata flags
-                allFlags = self.flags.copy()
-                allFlags.append(self.classification)
-                return allFlags
-            else:
-                # Only resolved flags
-                allFlags = self.resolvedFlags.copy()
-                allFlags.append(self.classification)
-                return allFlags
+        if isinstance(self.flags, list):
+            allFlags.extend(self.flags)
+
+        if isinstance(self.resolvedFlags, list):
+            allFlags.extend(self.resolvedFlags)
+
+        if isinstance(self.classification, str):
+            allFlags.append(self.classification)
+
+        return sorted(allFlags)
 
     # TODO: A `toJson` function
 
