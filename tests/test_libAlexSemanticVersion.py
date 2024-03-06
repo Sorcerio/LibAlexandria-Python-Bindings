@@ -49,6 +49,15 @@ class TestSemanticVersion(unittest.TestCase):
         self.assertFalse(v.isValid)
 
     def test_init6(self):
+        v = SemanticVersion("10.6.5+build.123")
+        self.assertEqual(v.major, 10)
+        self.assertEqual(v.minor, 6)
+        self.assertEqual(v.patch, 5)
+        self.assertEqual(v.preRelease, "")
+        self.assertEqual(v.metaData, "build.123")
+        self.assertTrue(v.isValid)
+
+    def test_init6(self):
         v = SemanticVersion("invalid.version")
         self.assertFalse(v.isValid)
 

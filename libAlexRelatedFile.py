@@ -2,6 +2,7 @@
 # A utility object for defining an additional file generally associated with a LibAlexandria Item.
 
 # Imports
+import os
 import json
 from typing import Optional
 
@@ -43,13 +44,19 @@ class LibAlexRelatedFile:
     def toJson(self) -> dict:
         """
         Returns a dictionary representation of the object.
+
+        Filepaths are assumed to be relative to the meta file as specified in the standard.
         """
-        return {
+        jsonData = {
             "label": self.label,
-            "path": self.path,
-            "description": self.description,
-            "id": self.id
+            "path": os.path.basename(self.path),
+            "description": self.description
         }
+
+        if self.id is not None:
+            jsonData["id"] = self.id
+
+        return jsonData
 
     def toJsonStr(self) -> str:
         """

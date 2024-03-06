@@ -11,8 +11,6 @@ import libAlexDefaults as laShared
 from libAlexRelatedFile import LibAlexRelatedFile
 from libAlexSemanticVersion import SemanticVersion
 
-# TODO: Add tests.
-
 # Classes
 class LibAlexItem:
     """
@@ -192,7 +190,7 @@ class LibAlexItem:
         # Mock v2 style data
         return cls._fromV2Json(
             {
-                "_infover": laShared.VER_LIBALEX,
+                "_infover": f"1.0.0+mockedv2",
                 "title": jsonData.get("title", laShared.DEF_TITLE),
                 "author": jsonData.get("author", laShared.DEF_AUTHOR),
                 "date": jsonData.get("date", laShared.DEF_DATE),
@@ -305,11 +303,13 @@ class LibAlexItem:
 
     def toJson(self) -> dict[str, Any]:
         """
-        Returns the JSON representation of the item.
+        Returns the JSON representation of the item in the most recent metadata format.
+
+        Filepaths are assumed to be relative to the meta file as specified in the standard.
         """
         # Build the JSON
         jsonData = {
-            "_infover": (self.version.string if isinstance(self.version, SemanticVersion) else laShared.VER_LIBALEX),
+            "_infover": laShared.VER_LIBALEX,
         }
 
         if isinstance(self.classification, str):
@@ -320,7 +320,7 @@ class LibAlexItem:
         jsonData["date"] = self.date
 
         if isinstance(self.sourceFile, str):
-            jsonData["sourceFile"] = self.sourceFile
+            jsonData["sourceFile"] = os.path.basename(self.sourceFile)
 
         if isinstance(self.relatedFiles, list):
             jsonData["otherFiles"] = [rf.toJson() for rf in self.relatedFiles]

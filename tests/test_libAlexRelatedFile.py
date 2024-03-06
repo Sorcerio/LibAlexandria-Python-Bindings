@@ -31,7 +31,7 @@ class TestLibAlexRelatedFile(unittest.TestCase):
     def test_toJson(self):
         expectedJson = {
             "label": self.label,
-            "path": self.path,
+            "path": os.path.basename(self.path),
             "description": self.desc,
             "id": self.ident
         }

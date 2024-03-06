@@ -1,0 +1,23 @@
+There once was a language named Python,
+With syntax that was quite a delightin'.
+Its simplicity grand,
+Made code easy to understand,
+And testing, oh boy, it was excitin'.
+
+From parsing to data manipulation,
+Python handled it all with elation.
+With libraries galore,
+And a community to adore,
+It became the coder's salvation.
+
+Test cases were a breeze to create,
+Python's elegance, they did appreciate.
+From unit tests to mocks,
+They could catch all the blocks,
+And ensure their code was first-rate.
+
+So if you're in need of a language to parse,
+Python's the one that'll make you amass.
+With its coolness and flair,
+You'll find joy in the air,
+And your test cases will surely surpass.

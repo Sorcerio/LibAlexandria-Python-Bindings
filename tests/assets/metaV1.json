@@ -1,0 +1,9 @@
+{
+    "_infover": "1.0.0",
+    "title": "Lorem Ipsum",
+    "author": "John Doe",
+    "date": "1984-04-01",
+    "content": "sourceFile.txt",
+    "flags": ["text", "prose", "example", "libalexandria", "test"],
+    "description": "A test LibAlexandria Item."
+}
