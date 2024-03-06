@@ -3,6 +3,7 @@
 
 # Imports
 import unittest
+
 from libAlexSemanticVersion import SemanticVersion
 
 # Classes
