@@ -106,10 +106,9 @@ class TestLibAlexItem(unittest.TestCase):
         self.assertEqual(item.sourceFile, self.sourceFile)
         self.assertEqual(item.metaFilepath, self.metaPathV1)
         self.assertEqual(item.flags, self.flags)
+        self.assertEqual(item.classification, self.classification)
 
         self.assertIsNotNone(item.resolvedFlags) # These will change per user
-
-        self.assertIsNone(item.classification)
         self.assertIsNone(item.relatedFiles)
 
     def test_fromMetaFile_v2(self): # This also tests the `fromJson` funcs
@@ -155,6 +154,16 @@ class TestLibAlexItem(unittest.TestCase):
             len(allFlags),
             (len(self.item.flags) + len(self.item.resolvedFlags) - self.flagDupeCount + 1) # +1 for classification!
         )
+
+    def test_toJson_v1(self):
+        item = LibAlexItem.fromMetaFile(self.metaPathV1)
+
+        with open(self.metaPathV2, "r") as file:
+            expectedJson = json.load(file)
+
+        expectedJson["otherFiles"] = []
+
+        self.assertEqual(item.toJson(), expectedJson)
 
     def test_toJson_v2(self):
         with open(self.metaPathV2, "r") as file:

@@ -50,7 +50,7 @@ class LibAlexItem:
         self.version = version
         self.title = title
         self.author = author
-        self.date = date # TODO: Parse dates in `YYYY-MM-DD`, `YYYY/MM/DD`, `MM-DD-YYYY`, and `MM/DD/YYYY` formats
+        self.date = date
         self.description = description
         self.directory = directory
         self.sourceFile = sourceFile
@@ -184,7 +184,6 @@ class LibAlexItem:
         Returns a new LibAlexandria Item.
         """
         # Tell them off
-        # TODO: Make a script for converting v1.* to v2.*?
         warn("DEPRECATED: Version `1.*` Meta files should be converted to Version `2.*` for increased compatibility and functionality!")
 
         # Mock v2 style data
@@ -314,6 +313,8 @@ class LibAlexItem:
 
         if isinstance(self.classification, str):
             jsonData["classification"] = self.classification
+        else:
+            jsonData["classification"] = laShared.DEF_CLASSIFICATION
 
         jsonData["title"] = self.title
         jsonData["author"] = self.author
@@ -321,12 +322,18 @@ class LibAlexItem:
 
         if isinstance(self.sourceFile, str):
             jsonData["sourceFile"] = os.path.basename(self.sourceFile)
+        else:
+            jsonData["sourceFile"] = ""
 
         if isinstance(self.relatedFiles, list):
             jsonData["otherFiles"] = [rf.toJson() for rf in self.relatedFiles]
+        else:
+            jsonData["otherFiles"] = []
 
         if isinstance(self.flags, list):
             jsonData["flags"] = self.flags
+        else:
+            jsonData["flags"] = []
 
         jsonData["description"] = self.description
 
