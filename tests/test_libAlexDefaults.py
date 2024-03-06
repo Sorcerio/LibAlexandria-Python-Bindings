@@ -1,5 +1,5 @@
-# LibAlexandria: Senamtic Versioning Tests
-# Tests for the `SemanticVersion` class.
+# LibAlexandria: LibAlex Shared Functionality Tests
+# Tests for the LibAlex Shared Functionality.
 
 # Imports
 import unittest
