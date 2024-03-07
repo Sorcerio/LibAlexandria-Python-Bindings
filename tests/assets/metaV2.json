@@ -1,0 +1,23 @@
+{
+    "_infover": "2.0.0",
+    "classification": "AS",
+    "title": "Lorem Ipsum",
+    "author": "John Doe",
+    "date": "1984-04-01",
+    "sourceFile": "sourceFile.txt",
+    "otherFiles": [
+        {
+            "label": "A Limerick",
+            "path": "relatedFile.txt",
+            "description": "A Limerick for testing purposes."
+        },
+        {
+            "label": "A Haiku",
+            "path": "relatedFile2.txt",
+            "description": "A Haiku for testing purposes.",
+            "id": "haiku"
+        }
+    ],
+    "flags": ["text", "prose", "example", "libalexandria", "test"],
+    "description": "A test LibAlexandria Item."
+}
